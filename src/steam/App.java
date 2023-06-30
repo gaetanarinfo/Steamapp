@@ -10,17 +10,20 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
-import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -43,8 +46,16 @@ public class App {
 	public static String usernameLogin;
 	public static String passwordLogin;
 	public static String saltLogin;
+
 	public static String[] listProfilPseudo = {};
 	public static String[] listProfilAvatar = {};
+	public static String[] listProfilAvatarFull = {};
+	public static String[] listProfilId = {};
+	public static String[] listProfilFullName = {};
+	public static String[] listProfilDrapeau = {};
+	public static String[] listProfilLocCityId = {};
+	public static String[] listProfilLocStateCode = {};
+
 	public static JLabel username = new JLabel("Nom d'utilisateur :");
 	public static JLabel password = new JLabel("Mot de passe :");
 	public static JLabel createAccount = new JLabel("Vous n'avez pas de compte ?");
@@ -64,6 +75,9 @@ public class App {
 
 	public static String newPseudoProfil;
 	public static String newAvatarProfil;
+	public static String newAvatarSmallProfil;
+	public static int loccityid;
+	public static String locstatecode;
 	public static String steamidProfil;
 	public static String loccountrycodeProfil;
 	public static String nameProfil;
@@ -84,6 +98,9 @@ public class App {
 	public static JPasswordField passwordR = new JPasswordField();
 	public static String passwordEnc;
 	public static String passwordSalt;
+
+	public static String[] getListLastGameName = {};
+	public static String[] getListLastGameImage = {};
 
 	// Login user
 	public static void login(Connection conn) {
@@ -127,7 +144,13 @@ public class App {
 					while (rs.next()) {
 
 						String pseudo = rs.getString("pseudo");
+						String avatar_small = rs.getString("avatar_small");
 						String avatar = rs.getString("avatar");
+						String id = rs.getString("steamid");
+						String fullName = rs.getString("name");
+						String country = rs.getString("country");
+						String loccityid = rs.getString("loccityid");
+						String locstatecode = rs.getString("locstatecode");
 
 						ArrayList<String> arrayList = new ArrayList<String>(Arrays.asList(listProfilPseudo));
 
@@ -137,9 +160,46 @@ public class App {
 
 						ArrayList<String> arrayList2 = new ArrayList<String>(Arrays.asList(listProfilAvatar));
 
-						arrayList2.add(avatar);
+						arrayList2.add(avatar_small);
 
 						listProfilAvatar = arrayList2.toArray(listProfilAvatar);
+
+						ArrayList<String> arrayList3 = new ArrayList<String>(Arrays.asList(listProfilId));
+
+						arrayList3.add(id);
+
+						listProfilId = arrayList3.toArray(listProfilId);
+
+						ArrayList<String> arrayList4 = new ArrayList<String>(Arrays.asList(listProfilAvatarFull));
+
+						arrayList4.add(avatar);
+
+						listProfilAvatarFull = arrayList4.toArray(listProfilAvatarFull);
+
+						ArrayList<String> arrayList5 = new ArrayList<String>(Arrays.asList(listProfilFullName));
+
+						arrayList5.add(fullName);
+
+						listProfilFullName = arrayList5.toArray(listProfilFullName);
+
+						ArrayList<String> arrayList6 = new ArrayList<String>(Arrays.asList(listProfilDrapeau));
+
+						arrayList6.add("https://community.cloudflare.steamstatic.com/public/images/countryflags/"
+								+ country.toLowerCase() + ".gif");
+
+						listProfilDrapeau = arrayList6.toArray(listProfilDrapeau);
+
+						ArrayList<String> arrayList7 = new ArrayList<String>(Arrays.asList(listProfilLocCityId));
+
+						arrayList7.add(loccityid);
+
+						listProfilLocCityId = arrayList7.toArray(listProfilLocCityId);
+
+						ArrayList<String> arrayList8 = new ArrayList<String>(Arrays.asList(listProfilLocStateCode));
+
+						arrayList8.add(locstatecode);
+
+						listProfilLocStateCode = arrayList8.toArray(listProfilLocStateCode);
 
 					}
 				}
@@ -160,7 +220,9 @@ public class App {
 
 	}
 
-	public static void addProfil(Connection conn) {
+	// Add Profil
+	@SuppressWarnings("null")
+	public static void addProfil(Connection conn) throws URISyntaxException, IOException {
 
 		try (Statement stmt = conn.createStatement()) {
 
@@ -169,8 +231,9 @@ public class App {
 			if (newPseudoProfil != null) {
 
 				stmt.executeUpdate("INSERT INTO profils " + "VALUES (NULL, '" + idLogin + "', '" + newPseudoProfil
-						+ "', '" + newAvatarProfil + "', '" + steamidProfil + "', '" + loccountrycodeProfil + "', '"
-						+ nameProfil + "')");
+						+ "', '" + newAvatarProfil + "', '" + newAvatarSmallProfil + "', '" + steamidProfil + "', '"
+						+ loccountrycodeProfil + "', '" + nameProfil + "', '" + loccityid + "', '" + locstatecode
+						+ "')");
 
 				userIdLogin.setBorder(new BorderForms(Color.decode("#5BCD55")));
 				userIdLogin.setBorder(BorderFactory.createCompoundBorder(userIdLogin.getBorder(),
@@ -188,17 +251,47 @@ public class App {
 
 				listProfilAvatar = arrayList2.toArray(listProfilAvatar);
 
-				useridError.setText("<html>Pour valider vos modifications</br> merci de relancer steamapp !</html>");
-				useridError.setVisible(true);
+				TimeOut.setTimeout(() -> {
+					ValidateHome.windowAddProfil.setVisible(false);
+					ValidateHome.btnPlusProfil.setVisible(false);
+				}, 2500);
 
-				if (listProfilAvatar.length >= 3) {
+				TimeOut.setTimeout(() -> {
+					try {
 
-					TimeOut.setTimeout(() -> {
-						ValidateHome.windowAddProfil.setVisible(false);
-						ValidateHome.btnPlusProfil.setVisible(false);
-					}, 4000);
+						ArrayList<String> commands = new ArrayList<String>();
+						List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
 
-				}
+						// Java
+						commands.add(
+								System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
+
+						// Jvm arguments
+						for (String jvmArg : jvmArgs) {
+							commands.add(jvmArg);
+						}
+
+						// Classpath
+						commands.add("-cp");
+						commands.add(ManagementFactory.getRuntimeMXBean().getClassPath());
+
+						// Class to be executed
+						commands.add(App.class.getName());
+
+						File workingDir = null; // Null working dir means that the child uses the same working directory
+
+						String[] env = null; // Null env means that the child uses the same environment
+
+						String[] commandArray = new String[commands.size()];
+						commandArray = commands.toArray(commandArray);
+
+						Runtime.getRuntime().exec(commandArray, env, workingDir);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					System.exit(0);
+				}, 3500);
 
 				conn.close();
 
@@ -223,6 +316,7 @@ public class App {
 
 	}
 
+	// Remove Profil
 	public static void removeProfil(Connection conn) {
 
 		try (Statement stmt = conn.createStatement()) {
@@ -262,6 +356,7 @@ public class App {
 		ValidateHome.addProfilTitle.setText("Vos profils (0)");
 	}
 
+	// Create account
 	@SuppressWarnings("deprecation")
 	public static void createAccount(Connection conn) {
 
@@ -322,12 +417,20 @@ public class App {
 
 	}
 
+	public static void getProfilById(String profilId) {
+
+		SteamProfil.getProfilLastGameById(profilId);
+		SteamProfilById.load();
+
+	}
+
+	// Class primary main
 	public static void main(String[] args) throws Exception {
 
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
-				
+
 				try {
 					Logs.LogsDebug("");
 					Logs.ReadTextLogs();
@@ -685,11 +788,11 @@ public class App {
 							public void iconClose3() throws IOException {
 
 								System.out.print(Logs.datefl.format(Logs.DateDuJour)
-										+ " -- Vous avez fermé Steamap ajout d'un profil\n");
+										+ " -- Vous avez fermé Steamap ajout d'un compte\n");
 
 								// Class permettant de sauvegarder le logs
 								Logs.SaveTextLogs(Logs.ReadTextLogs() + Logs.datefl.format(Logs.DateDuJour)
-										+ " -- Vous avez fermé Steamapp ajout d'un profil\n");
+										+ " -- Vous avez fermé Steamapp ajout d'un compte\n");
 
 								windowAddAccount.setVisible(false);
 
@@ -787,7 +890,7 @@ public class App {
 				FrameHome.second_label.add(passwordJ);
 
 				usernameJ.setText("test");
-				passwordJ.setText("@Zyfnnake72");
+				passwordJ.setText("test");
 
 				// Button Login
 				ImageIcon imageIcon3;
@@ -836,6 +939,7 @@ public class App {
 		});
 	}
 
+	// Create jlabel list
 	public static JLabel createJLabel(ImageIcon imageIcon3) {
 		JLabel jl = new JLabel(imageIcon3);
 
@@ -901,7 +1005,6 @@ public class App {
 			return true;
 		}
 	}
-	//
 
 	public class RoundedBorder extends AbstractBorder {
 
@@ -933,11 +1036,6 @@ public class App {
 		public boolean isBorderOpaque() {
 			return false;
 		}
-	}
-
-	public static void addKeyListener(KeyAdapter keyAdapter) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

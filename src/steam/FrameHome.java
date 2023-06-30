@@ -21,7 +21,7 @@ public class FrameHome extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	public static MouseAdapter iconClose;
-	public static JLabel first_label, second_label, three_label, for_label, five_label;
+	public static JLabel first_label, second_label, three_label, for_label, five_label, six_label;
 	public static JButton validateId = new JButton("Valider");
 	public static JButton validateAccount = new JButton("Valider");
 	public static JFrame window = new JFrame("Steam App");

@@ -32,6 +32,7 @@ public class ValidateHome {
 	public static JFrame windowAddProfil = new JFrame("Steam App - Création d'un profil");
 	public static JLabel btnPlusProfil = new JLabel();
 	public static JLabel addProfilTitle = new JLabel();
+	public static MouseAdapter showProfilId;
 	public static MouseAdapter validateAccountMouse;
 	public static MouseAdapter createAccountMouse;
 	public static MouseAdapter tabLeftBtn1Mouse;
@@ -198,7 +199,8 @@ public class ValidateHome {
 							public void mouseEntered(MouseEvent e) {
 								FrameHome.window.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 								ImageIcon imageIconAddProfil;
-								imageIconAddProfil = new ImageIcon(getClass().getResource("/images/plus-transparent.png"));
+								imageIconAddProfil = new ImageIcon(
+										getClass().getResource("/images/plus-transparent.png"));
 								Image ImagesAddProfil = imageIconAddProfil.getImage();
 								Image newimgaddprofil = ImagesAddProfil.getScaledInstance(35, 35,
 										java.awt.Image.SCALE_SMOOTH); // scale it the smooth
@@ -269,7 +271,8 @@ public class ValidateHome {
 									public void mouseEntered(MouseEvent e) {
 										windowAddProfil.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 										ImageIcon imageIcon4;
-										imageIcon4 = new ImageIcon(getClass().getResource("/images/close-transparent.png"));
+										imageIcon4 = new ImageIcon(
+												getClass().getResource("/images/close-transparent.png"));
 										Image Images4 = imageIcon4.getImage();
 										Image newimg4 = Images4.getScaledInstance(15, 15, java.awt.Image.SCALE_SMOOTH); // scale
 																														// it
@@ -309,7 +312,7 @@ public class ValidateHome {
 									public void iconClose2() throws IOException {
 
 										System.out.print(Logs.datefl.format(Logs.DateDuJour)
-												+ " -- Vous avez fermé Steamap ajout d'un profil\n");
+												+ " -- Vous avez fermé Steamapp ajout d'un profil\n");
 
 										// Class permettant de sauvegarder le logs
 										Logs.SaveTextLogs(Logs.ReadTextLogs() + Logs.datefl.format(Logs.DateDuJour)
@@ -528,6 +531,10 @@ public class ValidateHome {
 
 						FrameHome.second_label.add(addProfilTitle);
 
+						// Lancement de la JFrame qui contiendra :
+						// Les derniers jeux etc etc ...
+						SteamProfilById.view();
+
 						for (int i = 0; i < App.listProfilPseudo.length; i++) {
 
 							tab[i] = App.jl;// on crée les JLabel et on met dans tab
@@ -560,6 +567,50 @@ public class ValidateHome {
 									tabout.setBackground(Color.decode("#32353c"));
 								}
 							});
+
+							int profilSId = i;
+
+							showProfilId = new MouseAdapter() {
+								@Override
+								public void mouseClicked(MouseEvent me) {
+									super.mouseClicked(me);
+									try {
+										showProfilId(App.listProfilId[profilSId], App.listProfilPseudo[profilSId],
+												App.listProfilAvatarFull[profilSId], App.listProfilFullName[profilSId],
+												App.listProfilDrapeau[profilSId], App.listProfilLocCityId[profilSId],
+												App.listProfilLocStateCode[profilSId]);
+									} catch (IOException e) {
+
+										e.printStackTrace();
+									}
+								}
+
+								public void showProfilId(String profilId, String pseudo, String avatar, String fullName,
+										String drapeau, String loccityid, String locstatecode) throws IOException {
+
+									App.getProfilById(profilId);
+
+									SteamProfilById.title.setText("Votre profil " + pseudo + " sur steam");
+									SteamProfilById.avatarLoad(avatar, drapeau);
+									SteamProfilById.username.setText(pseudo);
+									SteamProfilById.firstLastname.setText(fullName);
+
+									// Recherche dans le fichier Json pour la localisation du profil
+									SteamProfilById.find("https://portfolio-gaetan.fr/api/steamGetCountry/" + drapeau
+											.trim().toLowerCase()
+											.replace(
+													"https://community.cloudflare.steamstatic.com/public/images/countryflags/",
+													"")
+											.replace(".gif", "") + "/" + locstatecode + "/" + loccityid);
+
+									SteamProfilById.windowProfilById.setVisible(true);
+
+								}
+
+							};
+
+							// Impératif pour que le bouton fonctionne
+							tab[i].addMouseListener(showProfilId);
 
 						}
 
@@ -598,6 +649,51 @@ public class ValidateHome {
 										lblimage.setBackground(Color.decode("#32353c"));
 									}
 								});
+
+								int profilSId = i;
+
+								showProfilId = new MouseAdapter() {
+									@Override
+									public void mouseClicked(MouseEvent me) {
+										super.mouseClicked(me);
+										try {
+											showProfilId(App.listProfilId[profilSId], App.listProfilPseudo[profilSId],
+													App.listProfilAvatarFull[profilSId],
+													App.listProfilFullName[profilSId], App.listProfilDrapeau[profilSId],
+													App.listProfilLocCityId[profilSId],
+													App.listProfilLocStateCode[profilSId]);
+										} catch (IOException e) {
+
+											e.printStackTrace();
+										}
+									}
+
+									public void showProfilId(String profilId, String pseudo, String avatar,
+											String fullName, String drapeau, String loccityid, String locstatecode)
+											throws IOException {
+
+										App.getProfilById(profilId);
+
+										SteamProfilById.title.setText("Votre profil " + pseudo + " sur steam");
+										SteamProfilById.avatarLoad(avatar, drapeau);
+										SteamProfilById.username.setText(pseudo);
+										SteamProfilById.firstLastname.setText(fullName);
+
+										// Recherche dans le fichier Json pour la localisation du profil
+										SteamProfilById.find("https://portfolio-gaetan.fr/api/steamGetCountry/"
+												+ drapeau.trim().toLowerCase().replace(
+														"https://community.cloudflare.steamstatic.com/public/images/countryflags/",
+														"").replace(".gif", "")
+												+ "/" + locstatecode + "/" + loccityid);
+
+										SteamProfilById.windowProfilById.setVisible(true);
+
+									}
+
+								};
+
+								// Impératif pour que le bouton fonctionne
+								lblimage.addMouseListener(showProfilId);
 
 							} catch (IOException e) {
 								try {
